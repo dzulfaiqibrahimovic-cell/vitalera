@@ -1,10 +1,4 @@
-Since this has to be plain HTML (no file), here's the same app with:
-
-1. **Logo embedded directly as inline SVG** (no more `assets/logo-vitalera.png` dependency — that's why it wasn't showing) reused in the header, the ecosystem graphic, and the Vita Key art.
-2. **Vita Key section rebuilt as an inline SVG** modeled on your keychain photo (charm + QR tag + bead strand).
-3. **A real emotional check-in questionnaire** added to Vita Check — 8 self-report items, scored 0–100, with risk tiers. I kept it as a *self-reflection* tool (not a diagnosis), framed as inspired by SATUSEHAT's digital-health-transformation approach, and added an actual crisis-referral block (Kemenkes's official 119 ext. 8 / healing119.id line) that appears if someone scores in the highest-concern tier — that part I did not skip, since a wellbeing tool for teenagers really should have a real safety net, not just a cosmetic "cari bantuan" button.
-
-```html
+html
 <!DOCTYPE html>
 <html lang="id">
 <head>
