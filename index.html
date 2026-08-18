@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VITALERA — Pulih, Tumbuh, Berdaya.</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vital: {
+                            50: '#f1f9f5', 100: '#e2f2e9', 200: '#c5e5d3', 300: '#98d0b0',
+                            400: '#62b78d', 500: '#3c9b70', 600: '#25805a', 700: '#1c684a',
+                            800: '#19533d', 900: '#164536'
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        jakarta: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; background: #f4f7f5; color: #14231f; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #c7d8d0; border-radius: 20px; }
+
+        .app-layout {
+            width: 100%; min-height: 100vh; margin: 0 auto;
+            background: #ffffff; position: relative; overflow-x: hidden;
+        }
+
+        @media (min-width: 1024px) {
+            body { padding: 0; background: #f0f4f2; }
+            .app-layout {
+                max-width: 1280px; min-height: 100vh;
+                display: grid; grid-template-columns: 260px 1fr;
+                box-shadow: 0 0 50px rgba(0,0,0,0.05);
+            }
+            .desktop-sidebar { display: flex !important; }
+            .mobile-bottom-nav { display: none !important; }
+            .mobile-header-menu { display: none !important; }
+            .main-content { padding-left: 2rem; padding-right: 2rem; }
+        }
+
+        .page { display: none; animation: fadeIn .25s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .mood-button { transition: all .2s ease; }
+        .mood-button.selected { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(35, 100, 72, .13); border-color: #74b994; }
+
+        .progress-line { height: 8px; border-radius: 999px; background: #e7eee9; overflow: hidden; }
+        .progress-line > div { height: 100%; border-radius: inherit; background: #31906a; transition: width .4s ease; }
+
+        .chat-message { animation: messageIn .2s ease; }
+        @keyframes messageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item.active { color: #146746; font-weight: 700; }
+        .nav-item.active .nav-icon { background: #e3f2e9; color: #1c684a; }
+
+        .sidebar-item.active { background-color: #e2f2e9; color: #19533d; font-weight: 700; }
+
+        .chart-line { fill: none; stroke: #48a77c; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .chart-dot { fill: #48a77c; }
+
+        .hide-scrollbar { scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        .quiz-scale-btn {
+            width: 38px; height: 38px; border-radius: 999px; border: 1.5px solid #e2e8e4;
+            font-size: 13px; font-weight: 700; color: #6b7a73; background: #fff; transition: all .15s ease;
+        }
+        .quiz-scale-btn.selected { background: #1c684a; border-color: #1c684a; color: #fff; transform: scale(1.08); }
+        .quiz-question.answered { border-color: #bfe0cd; background: #f8fdfa; }
+    </style>
+</head>
+
+<body>
+
+<svg style="display:none">
+    <symbol id="vitalera-logo" viewBox="0 0 200 200">
+        <path d="M40 70C55 55 72 48 92 46C90 66 78 82 58 90C48 84 42 78 40 70Z" fill="#8EC3AA"/>
+        <path d="M28 95C42 84 58 80 76 82C71 100 58 113 40 116C31 111 27 103 28 95Z" fill="#A4CCB8"/>
+        <path d="M24 122C36 114 50 112 64 116C58 130 47 139 32 140C25 136 22 129 24 122Z" fill="#C4DFD1"/>
+        <path d="M160 70C145 55 128 48 108 46C110 66 122 82 142 90C152 84 158 78 160 70Z" fill="#8EC3AA"/>
+        <path d="M172 95C158 84 142 80 124 82C129 100 142 113 160 116C169 111 173 103 172 95Z" fill="#A4CCB8"/>
+        <path d="M176 122C164 114 150 112 136 116C142 130 153 139 168 140C175 136 178 129 176 122Z" fill="#C4DFD1"/>
+        <path d="M55 68C68 100 90 150 100 180C110 150 132 100 145 68" stroke="#6FB8DF" stroke-width="13" fill="none" stroke-linecap="round"/>
+        <circle cx="100" cy="42" r="14" fill="#F4B942"/>
+        <path d="M68 78C80 92 92 108 100 128C108 108 120 92 132 78" stroke="#1c684a" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="100" cy="76" r="12" fill="#1c684a"/>
+        <path d="M100 118c-3-4-9-4-10.5 0.3c-1.6 4.3 1 8.2 10.5 15.2c9.5-7 12.1-10.9 10.5-15.2c-1.5-4.3-7.5-4.3-10.5-0.3z" fill="#ffffff"/>
+    </symbol>
+</svg>
+
+<!-- MODAL BIODATA (TAMPIL PERTAMA KALI) -->
+<div id="welcome-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 lg:p-8 shadow-2xl relative">
+        <div class="text-center">
+            <svg class="w-16 h-16 mx-auto mb-2" viewBox="0 0 200 200"><use href="#vitalera-logo"/></svg>
+            <h2 class="text-2xl font-bold text-vital-800">Selamat Datang!</h2>
+            <p class="text-xs text-gray-500 mt-1">Mari perkenalkan diri dulu agar VITALERA bisa mengenalmu lebih baik.</p>
+        </div>
+
+        <form id="onboarding-form" onsubmit="saveProfile(event)" class="mt-6 space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Lengkap / Panggilan</label>
+                <input id="user-name-input" type="text" required placeholder="Contoh: Dzulfaiq" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-vital-400">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Usia (Tahun)</label>
+                    <input id="user-age-input" type="number" min="10" max="100" required placeholder="17" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-vital-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Jenis Kelamin</label>
+                    <select id="user-gender-input" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-2 focus:ring-vital-400 text-gray-700">
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Status Saat Ini</label>
+                <select id="user-status-input" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-2 focus:ring-vital-400 text-gray-700">
+                    <option value="Pelajar / Mahasiswa">Pelajar / Mahasiswa</option>
+                    <option value="Pekerja">Pekerja</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+            </div>
+
+            <button type="submit" class="w-full mt-4 bg-vital-700 text-white font-bold py-3 rounded-xl text-xs hover:bg-vital-800 transition shadow-md shadow-vital-700/20">
+                Mulai Perjalanan Ruang Pulih →
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="app-layout">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="desktop-sidebar hidden flex-col justify-between border-r border-gray-100 p-6 bg-white sticky top-0 h-screen">
+        <div>
+            <div class="flex items-center gap-3 pb-8 border-b border-gray-100">
+                <svg class="w-12 h-12" viewBox="0 0 200 200"><use href="#vitalera-logo"/></svg>
+                <div>
+                    <div class="font-extrabold text-xl tracking-tight text-vital-800">VITALERA</div>
+                    <div class="text-[10px] text-gray-500">Pulih, Tumbuh, Berdaya.</div>
+                </div>
+            </div>
+
+            <nav class="mt-8 space-y-2">
+                <button onclick="navigate('home')" id="s-nav-home" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-vital-50 transition">
+                    <i data-lucide="house" class="w-5 h-5"></i> Beranda
+                </button>
+                <button onclick="navigate('check')" id="s-nav-check" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-vital-50 transition">
+                    <i data-lucide="heart-pulse" class="w-5 h-5"></i> Vita Check
+                </button>
+                <button onclick="navigate('buddy')" id="s-nav-buddy" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-vital-50 transition">
+                    <i data-lucide="bot" class="w-5 h-5"></i> Vita Buddy
+                </button>
+                <button onclick="navigate('learn')" id="s-nav-learn" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-vital-50 transition">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> Vita Learn
+                </button>
+                <button onclick="navigate('care')" id="s-nav-care" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-vital-50 transition">
+                    <i data-lucide="cross" class="w-5 h-5"></i> Vita Care
+                </button>
+                <button onclick="navigate('card')" id="s-nav-card" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-vital-50 transition">
+                    <i data-lucide="chart-no-axes-combined" class="w-5 h-5"></i> Vita Card
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-vital-50 border border-vital-100">
+            <div class="text-xs font-bold text-vital-800">Status Kesehatan</div>
+            <div class="text-[11px] text-vital-600 mt-1">Stabil (Aktivitas Aktif)</div>
+        </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex flex-col min-h-screen">
+
+        <!-- HEADER -->
+        <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100">
+            <div class="h-[78px] px-5 lg:px-8 flex items-center justify-between">
+                <button onclick="navigate('home')" class="lg:hidden flex items-center gap-3 text-left">
+                    <svg class="w-10 h-10" viewBox="0 0 200 200"><use href="#vitalera-logo"/></svg>
+                    <div>
+                        <div class="font-extrabold text-lg tracking-tight text-vital-800">VITALERA</div>
+                    </div>
+                </button>
+                <div class="hidden lg:block font-bold text-gray-700 text-lg">Dashboard Pengguna</div>
+                <div class="flex items-center gap-3">
+                    <button aria-label="Notifikasi" class="relative w-10 h-10 rounded-full flex items-center justify-center text-vital-800 hover:bg-vital-50 transition">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-[7px] right-[8px] w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content pb-28 lg:pb-12 pt-6">
+
+            <!-- PAGE HOME -->
+            <section id="page-home" class="page active">
+                <div class="px-5 lg:px-0">
+                    <div class="relative pt-2 pb-5">
+                        <h1 class="text-2xl lg:text-3xl font-bold tracking-tight text-[#14231f]">Hai, <span id="display-name">Teman</span> <span class="inline-block">👋</span></h1>
+                        <p class="mt-1 text-sm lg:text-base text-gray-600">Bagaimana perasaanmu hari ini?</p>
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-2 lg:gap-4 mt-2">
+                        <button class="mood-button rounded-2xl border border-transparent p-2 lg:p-4 text-center bg-white shadow-sm" onclick="selectMood(this, 'Sangat Baik', 95)">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-[#e3f2eb] flex items-center justify-center"><i data-lucide="laugh" class="w-7 h-7 text-[#146746]"></i></div>
+                            <div class="text-[11px] lg:text-xs mt-2 font-medium text-gray-700">Sangat Baik</div>
+                        </button>
+                        <button class="mood-button rounded-2xl border border-transparent p-2 lg:p-4 text-center bg-white shadow-sm" onclick="selectMood(this, 'Baik', 85)">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-[#e6f3ed] flex items-center justify-center"><i data-lucide="smile" class="w-7 h-7 text-[#187455]"></i></div>
+                            <div class="text-[11px] lg:text-xs mt-2 font-medium text-gray-700">Baik</div>
+                        </button>
+                        <button class="mood-button rounded-2xl border border-transparent p-2 lg:p-4 text-center bg-white shadow-sm" onclick="selectMood(this, 'Biasa Aja', 72)">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-[#fff3cf] flex items-center justify-center"><i data-lucide="meh" class="w-7 h-7 text-[#26333a]"></i></div>
+                            <div class="text-[11px] lg:text-xs mt-2 font-medium text-gray-700">Biasa Aja</div>
+                        </button>
+                        <button class="mood-button rounded-2xl border border-transparent p-2 lg:p-4 text-center bg-white shadow-sm" onclick="selectMood(this, 'Buruk', 48)">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-[#ffe5d7] flex items-center justify-center"><i data-lucide="frown" class="w-7 h-7 text-[#26333a]"></i></div>
+                            <div class="text-[11px] lg:text-xs mt-2 font-medium text-gray-700">Buruk</div>
+                        </button>
+                        <button class="mood-button rounded-2xl border border-transparent p-2 lg:p-4 text-center bg-white shadow-sm" onclick="selectMood(this, 'Sangat Buruk', 25)">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-[#ffdfe2] flex items-center justify-center"><i data-lucide="frown" class="w-7 h-7 text-[#26333a]"></i></div>
+                            <div class="text-[11px] lg:text-xs mt-2 font-medium text-gray-700">Sangat Buruk</div>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                        <div class="lg:col-span-2 rounded-2xl border border-gray-100 shadow-sm p-6 bg-white">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <h2 class="font-semibold text-lg text-[#1b2c27]">Skor Mood Hari Ini</h2>
+                                    <div class="mt-4 flex items-end gap-2">
+                                        <span id="mood-score" class="text-5xl font-bold leading-none text-vital-800">72</span>
+                                        <span class="text-gray-500 mb-1">/ 100</span>
+                                    </div>
+                                    <div class="mt-4 flex items-center gap-2 text-amber-500 text-sm">
+                                        <i data-lucide="triangle-alert" class="w-4 h-4"></i>
+                                        <span id="mood-risk">Risiko Sedang</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col justify-between">
+                                    <svg viewBox="0 0 220 110" class="w-full h-[110px]">
+                                        <line x1="5" y1="96" x2="215" y2="96" stroke="#eef2ef"/>
+                                        <polyline points="10,80 48,80 82,48 116,57 151,23 184,31 213,8" class="chart-line"/>
+                                        <circle cx="10" cy="80" r="4" class="chart-dot"/><circle cx="48" cy="80" r="4" class="chart-dot"/>
+                                        <circle cx="82" cy="48" r="4" class="chart-dot"/><circle cx="116" cy="57" r="4" class="chart-dot"/>
+                                        <circle cx="151" cy="23" r="4" class="chart-dot"/><circle cx="184" cy="31" r="4" class="chart-dot"/>
+                                        <circle cx="213" cy="8" r="4" class="chart-dot"/>
+                                    </svg>
+                                    <button onclick="navigate('check')" class="w-full mt-2 rounded-xl bg-[#e3f1e8] text-vital-800 py-2.5 font-semibold text-sm hover:bg-vital-200 transition">
+                                        Lihat Detail <i data-lucide="chevron-right" class="inline-block w-4 h-4 align-middle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rounded-2xl border border-gray-100 shadow-sm p-6 bg-white flex flex-col justify-between">
+                            <div>
+                                <h2 class="font-bold text-lg text-vital-800">Bantuan Pintar</h2>
+                                <p class="text-xs text-gray-500 mt-1">Butuh kawan cerita cepat? Vita Buddy AI siap merespons.</p>
+                            </div>
+                            <button onclick="navigate('buddy')" class="w-full mt-6 bg-vital-700 text-white rounded-xl py-3 font-semibold text-xs flex items-center justify-center gap-2 hover:bg-vital-800 transition">
+                                <i data-lucide="bot" class="w-4 h-4"></i> Minta Saran Vita Buddy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <h2 class="font-bold text-xl text-gray-800">Akses Cepat</h2>
+                        <div class="grid grid-cols-5 gap-3 mt-4">
+                            <button onclick="navigate('check')" class="text-center p-3 rounded-2xl bg-white border border-gray-100 hover:shadow-sm transition">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-[#dcefe7] flex items-center justify-center text-vital-700"><i data-lucide="heart-pulse" class="w-6 h-6"></i></div>
+                                <div class="text-xs mt-2 font-medium">Vita Check</div>
+                            </button>
+                            <button onclick="navigate('learn')" class="text-center p-3 rounded-2xl bg-white border border-gray-100 hover:shadow-sm transition">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-[#e1f0f9] flex items-center justify-center text-[#1476a8]"><i data-lucide="book-open" class="w-6 h-6"></i></div>
+                                <div class="text-xs mt-2 font-medium">Vita Learn</div>
+                            </button>
+                            <button onclick="navigate('buddy')" class="text-center p-3 rounded-2xl bg-white border border-gray-100 hover:shadow-sm transition">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-[#e3edf5] flex items-center justify-center text-[#16719d]"><i data-lucide="bot" class="w-6 h-6"></i></div>
+                                <div class="text-xs mt-2 font-medium">Vita Buddy</div>
+                            </button>
+                            <button onclick="navigate('care')" class="text-center p-3 rounded-2xl bg-white border border-gray-100 hover:shadow-sm transition">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-[#ffe5e5] flex items-center justify-center text-red-500"><i data-lucide="cross" class="w-6 h-6"></i></div>
+                                <div class="text-xs mt-2 font-medium">Vita Care</div>
+                            </button>
+                            <button onclick="navigate('card')" class="text-center p-3 rounded-2xl bg-white border border-gray-100 hover:shadow-sm transition">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-[#ebe7fb] flex items-center justify-center text-indigo-600"><i data-lucide="chart-no-axes-combined" class="w-6 h-6"></i></div>
+                                <div class="text-xs mt-2 font-medium">Vita Card</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE VITA CHECK -->
+            <section id="page-check" class="page">
+                <div class="px-5 lg:px-0">
+                    <h1 class="text-2xl lg:text-3xl font-bold">Vita Check</h1>
+                    <p class="mt-1 text-sm text-gray-600">Ruang refleksi untuk membantu kamu memahami kondisi diri hari ini.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                        <div class="lg:col-span-2 rounded-2xl border border-gray-100 p-6 bg-white">
+                            <div class="flex items-center gap-2"><i data-lucide="clipboard-list" class="w-5 h-5 text-vital-700"></i><h2 class="font-bold text-lg">Kuesioner Refleksi Emosi</h2></div>
+                            <p class="text-xs text-gray-500 mt-1">Jawab 8 pertanyaan berikut sejujur-jujurnya sesuai kondisimu belakangan ini.</p>
+                            <div id="quiz-container" class="mt-6 space-y-4"></div>
+                            <button id="quiz-submit-btn" onclick="calculateQuiz()" class="w-full mt-6 bg-vital-700 text-white rounded-xl py-3 font-semibold text-sm hover:bg-vital-800 transition">Lihat Hasil Refleksi</button>
+                            <p id="quiz-warning" class="text-xs text-red-500 mt-2 hidden">Lengkapi semua pertanyaan di atas ya ✨</p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="rounded-2xl border border-gray-100 p-6 bg-white">
+                                <h2 class="font-bold">Skor Refleksi Hari Ini</h2>
+                                <div class="flex items-end gap-2 mt-4">
+                                    <span id="check-score" class="text-5xl font-bold text-vital-800">72</span><span class="text-gray-500 mb-1">/100</span>
+                                </div>
+                                <div class="progress-line mt-5"><div id="check-progress" style="width:72%"></div></div>
+                                <div id="check-risk-row" class="mt-4 flex items-center gap-2 text-amber-500 text-sm">
+                                    <i data-lucide="triangle-alert" class="w-4 h-4"></i><span id="check-risk">Risiko Sedang</span>
+                                </div>
+                            </div>
+
+                            <div id="crisis-box" class="rounded-2xl bg-red-50 border border-red-200 p-5 hidden">
+                                <div class="flex gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white text-red-500 flex items-center justify-center flex-shrink-0"><i data-lucide="heart-handshake" class="w-5 h-5"></i></div>
+                                    <div>
+                                        <h3 class="font-bold text-red-700 text-sm">Kamu tidak sendirian</h3>
+                                        <p class="text-xs text-gray-700 mt-1">Jika butuh bantuan segera, hubungi layanan darurat kesehatan mental terpercaya.</p>
+                                    </div>
+                                </div>
+                                <button onclick="navigate('care')" class="w-full mt-4 bg-red-600 text-white rounded-xl py-2.5 font-semibold text-xs hover:bg-red-700 transition">Buka Vita Care</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE VITA LEARN -->
+            <section id="page-learn" class="page">
+                <div class="px-5 lg:px-0">
+                    <h1 class="text-2xl lg:text-3xl font-bold">Vita Learn</h1>
+                    <p class="mt-1 text-sm text-gray-600">Belajar, memahami diri, dan tumbuh bersama.</p>
+
+                    <div class="flex flex-col md:flex-row gap-4 mt-6 items-center justify-between">
+                        <div class="relative w-full md:w-80">
+                            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                            <input id="learn-search" type="text" placeholder="Cari materi..." oninput="filterMaterials()" class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs outline-none focus:ring-2 focus:ring-vital-100">
+                        </div>
+
+                        <div class="flex gap-2 overflow-x-auto hide-scrollbar w-full md:w-auto">
+                            <button class="category-btn active px-4 py-2 rounded-full bg-vital-700 text-white text-xs whitespace-nowrap" onclick="filterCategory('all', this)">Semua</button>
+                            <button class="category-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-xs whitespace-nowrap" onclick="filterCategory('mental', this)">Mental</button>
+                            <button class="category-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-xs whitespace-nowrap" onclick="filterCategory('kesehatan', this)">Kesehatan</button>
+                            <button class="category-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-xs whitespace-nowrap" onclick="filterCategory('lifestyle', this)">Life Skills</button>
+                        </div>
+                    </div>
+
+                    <div id="materials" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                        <article class="material-card border border-gray-100 rounded-2xl p-5 bg-white flex flex-col justify-between" data-category="mental" data-title="Modul Olah Rasa">
+                            <div>
+                                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4"><i data-lucide="heart-handshake" class="w-6 h-6"></i></div>
+                                <div class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">MENTAL & EMOSI</div>
+                                <h3 class="font-bold text-base mt-1">Modul Olah Rasa</h3>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Mengenali emosi, memahami perasaan, kebutuhan diri, dan memilih respons yang lebih sehat.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
+                                <span class="text-[10px] text-gray-400">15 menit</span>
+                                <button onclick="openMaterialModal('Modul Olah Rasa', 'Modul ini dirancang untuk membantumu memetakan jenis emosi dasar yang dirasakan sehari-hari, serta teknik validasi emosi tanpa menghakimi diri sendiri.')" class="text-xs font-semibold text-vital-700 hover:underline">Mulai Belajar →</button>
+                            </div>
+                        </article>
+
+                        <article class="material-card border border-gray-100 rounded-2xl p-5 bg-white flex flex-col justify-between" data-category="mental" data-title="Manajemen Stres Remaja">
+                            <div>
+                                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4"><i data-lucide="brain" class="w-6 h-6"></i></div>
+                                <div class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">MENTAL & EMOSI</div>
+                                <h3 class="font-bold text-base mt-1">Manajemen Stres Remaja</h3>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Teknik grounding, pernapasan diafragma, dan cara mengurai beban pikiran sekolah.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
+                                <span class="text-[10px] text-gray-400">10 menit</span>
+                                <button onclick="openMaterialModal('Manajemen Stres Remaja', 'Gunakan teknik pernapasan 4-7-8 ketika merasa cemas. Tarik napas 4 detik, tahan 7 detik, dan hembuskan perlahan selama 8 detik.')" class="text-xs font-semibold text-vital-700 hover:underline">Mulai Belajar →</button>
+                            </div>
+                        </article>
+
+                        <article class="material-card border border-gray-100 rounded-2xl p-5 bg-white flex flex-col justify-between" data-category="kesehatan" data-title="Kesehatan Reproduksi & Genre">
+                            <div>
+                                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+                                <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">KESEHATAN</div>
+                                <h3 class="font-bold text-base mt-1">Kesehatan Reproduksi &amp; Genre</h3>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Edukasi substansial program Generasi Berencana mengenai kesiapan usia pernikahan dan pergaulan sehat.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
+                                <span class="text-[10px] text-gray-400">20 menit</span>
+                                <button onclick="openMaterialModal('Kesehatan Reproduksi & Genre', 'Pemahaman mendalam mengenai perubahan fisik, hormonal, dan batas personal yang aman dalam pergaulan remaja.')" class="text-xs font-semibold text-vital-700 hover:underline">Mulai Belajar →</button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE VITA BUDDY -->
+            <section id="page-buddy" class="page">
+                <div class="px-5 lg:px-0">
+                    <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col h-[75vh]">
+                        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+                            <div class="w-10 h-10 rounded-full bg-vital-100 flex items-center justify-center text-vital-800 font-bold">
+                                <i data-lucide="bot" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h1 class="font-bold text-lg leading-tight">Vita Buddy</h1>
+                                <p class="text-xs text-vital-600 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Teman Cerita AI 24/7
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 overflow-x-auto hide-scrollbar py-3">
+                            <button onclick="sendQuickPrompt('Saya merasa sangat lelah hari ini')" class="text-xs bg-vital-50 text-vital-700 px-3 py-1.5 rounded-full border border-vital-200 whitespace-nowrap hover:bg-vital-100 transition">Saya merasa lelah 😞</button>
+                            <button onclick="sendQuickPrompt('Beri saya tips atasi cemas')" class="text-xs bg-vital-50 text-vital-700 px-3 py-1.5 rounded-full border border-vital-200 whitespace-nowrap hover:bg-vital-100 transition">Atasi rasa cemas 🧘‍♂️</button>
+                            <button onclick="sendQuickPrompt('Bagaimana cara fokus belajar?')" class="text-xs bg-vital-50 text-vital-700 px-3 py-1.5 rounded-full border border-vital-200 whitespace-nowrap hover:bg-vital-100 transition">Tips fokus belajar 📚</button>
+                        </div>
+
+                        <div id="chat-window" class="flex-1 overflow-y-auto py-4 space-y-4 hide-scrollbar">
+                            <div class="chat-message bg-gray-100 text-gray-800 p-4 rounded-2xl max-w-[85%]">
+                                <p class="text-xs">Halo <span class="buddy-user-name">Teman</span>! Aku Vita Buddy. Mau cerita apa hari ini? Aku di sini siap mendengarkan tanpa menghakimi. 😊</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-gray-100 flex gap-2">
+                            <input id="chat-input" type="text" placeholder="Tulis pesanmu di sini..." onkeypress="handleChatKeyPress(event)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-vital-100">
+                            <button onclick="sendMessage()" class="bg-vital-700 text-white p-3 rounded-xl hover:bg-vital-800 transition"><i data-lucide="send" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE VITA CARE -->
+            <section id="page-care" class="page">
+                <div class="px-5 lg:px-0">
+                    <h1 class="text-2xl lg:text-3xl font-bold">Vita Care</h1>
+                    <p class="mt-1 text-sm text-gray-600">Layanan bantuan darurat dan rujukan profesional kesehatan mental.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="rounded-2xl border border-red-100 bg-red-50 p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="w-12 h-12 rounded-xl bg-white text-red-600 flex items-center justify-center mb-4"><i data-lucide="phone-call" class="w-6 h-6"></i></div>
+                                <h3 class="font-bold text-lg text-red-800">Hotline Darurat Kemenkes</h3>
+                                <p class="text-xs text-red-600 mt-2">Layanan konseling pencegahan krisis dan kesehatan mental 24 jam gratis.</p>
+                            </div>
+                            <a href="tel:119" class="mt-6 w-full bg-red-600 text-white rounded-xl py-3 font-semibold text-xs flex items-center justify-center gap-2 hover:bg-red-700 transition">
+                                <i data-lucide="phone" class="w-4 h-4"></i> Panggil Hotline (119 ext 8)
+                            </a>
+                        </div>
+
+                        <div class="rounded-2xl border border-vital-100 bg-vital-50 p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="w-12 h-12 rounded-xl bg-white text-vital-700 flex items-center justify-center mb-4"><i data-lucide="user-check" class="w-6 h-6"></i></div>
+                                <h3 class="font-bold text-lg text-vital-800">Konseling Konselor Sebaya</h3>
+                                <p class="text-xs text-vital-600 mt-2">Terhubung dengan konselor teman sebaya yang terlatih dari PIK-R.</p>
+                            </div>
+                            <button onclick="alert('Fitur penjadwalan konselor akan segera tersedia.')" class="mt-6 w-full bg-vital-700 text-white rounded-xl py-3 font-semibold text-xs flex items-center justify-center gap-2 hover:bg-vital-800 transition">
+                                <i data-lucide="calendar" class="w-4 h-4"></i> Buat Janji Temu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE VITA CARD -->
+            <section id="page-card" class="page">
+                <div class="px-5 lg:px-0">
+                    <h1 class="text-2xl lg:text-3xl font-bold">Vita Card</h1>
+                    <p class="mt-1 text-sm text-gray-600">Rangkuman perjalanan dan catatan berkala kesehatan mentalmu.</p>
+
+                    <div class="rounded-2xl border border-gray-100 p-6 bg-white shadow-sm mt-6">
+                        <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                            <div>
+                                <div class="text-xs text-gray-400 font-bold uppercase">Kartu Rekapitulasi</div>
+                                <h2 class="text-lg font-bold text-gray-800"><span id="card-user-name">Teman</span> — Laporan Bulanan</h2>
+                                <p id="card-user-details" class="text-xs text-gray-500 mt-0.5">Umur: - | Status: -</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-vital-100 text-vital-800 text-xs font-semibold">Aktif</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                            <div class="p-4 rounded-xl bg-gray-50">
+                                <div class="text-[10px] text-gray-500 font-semibold">RATA-RATA SKOR</div>
+                                <div class="text-2xl font-bold text-vital-800 mt-1">78 / 100</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-gray-50">
+                                <div class="text-[10px] text-gray-500 font-semibold">TOTAL REFLEKSI</div>
+                                <div class="text-2xl font-bold text-vital-800 mt-1">14 Kali</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-gray-50">
+                                <div class="text-[10px] text-gray-500 font-semibold">SESI BERSAMA BUDDY</div>
+                                <div class="text-2xl font-bold text-vital-800 mt-1">8 Sesi</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-gray-50">
+                                <div class="text-[10px] text-gray-500 font-semibold">MODUL SELESAI</div>
+                                <div class="text-2xl font-bold text-vital-800 mt-1">3 Modul</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<!-- MOBILE BOTTOM NAVIGATION -->
+<div class="mobile-bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30 bottom-nav">
+    <div class="grid grid-cols-5 h-16">
+        <button onclick="navigate('home')" id="m-nav-home" class="nav-item active flex flex-col items-center justify-center text-gray-500">
+            <div class="nav-icon p-1.5 rounded-xl transition"><i data-lucide="house" class="w-5 h-5"></i></div>
+            <span class="text-[10px] mt-0.5">Beranda</span>
+        </button>
+        <button onclick="navigate('check')" id="m-nav-check" class="nav-item flex flex-col items-center justify-center text-gray-500">
+            <div class="nav-icon p-1.5 rounded-xl transition"><i data-lucide="heart-pulse" class="w-5 h-5"></i></div>
+            <span class="text-[10px] mt-0.5">Check</span>
+        </button>
+        <button onclick="navigate('buddy')" id="m-nav-buddy" class="nav-item flex flex-col items-center justify-center text-gray-500">
+            <div class="nav-icon p-1.5 rounded-xl transition"><i data-lucide="bot" class="w-5 h-5"></i></div>
+            <span class="text-[10px] mt-0.5">Buddy</span>
+        </button>
+        <button onclick="navigate('learn')" id="m-nav-learn" class="nav-item flex flex-col items-center justify-center text-gray-500">
+            <div class="nav-icon p-1.5 rounded-xl transition"><i data-lucide="book-open" class="w-5 h-5"></i></div>
+            <span class="text-[10px] mt-0.5">Learn</span>
+        </button>
+        <button onclick="navigate('care')" id="m-nav-care" class="nav-item flex flex-col items-center justify-center text-gray-500">
+            <div class="nav-icon p-1.5 rounded-xl transition"><i data-lucide="cross" class="w-5 h-5"></i></div>
+            <span class="text-[10px] mt-0.5">Care</span>
+        </button>
+    </div>
+</div>
+
+<!-- MODAL LEARN MATERIAL -->
+<div id="material-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 relative">
+        <button onclick="closeMaterialModal()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 id="modal-title" class="font-bold text-lg text-gray-800">Judul Materi</h3>
+        <p id="modal-body" class="text-xs text-gray-600 mt-3 leading-relaxed">Isi materi detail...</p>
+        <button onclick="closeMaterialModal()" class="w-full mt-6 bg-vital-700 text-white rounded-xl py-2.5 font-semibold text-xs hover:bg-vital-800 transition">Selesai Membaca</button>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    let currentUser = {
+        name: 'Teman',
+        age: '',
+        gender: '',
+        status: ''
+    };
+
+    function saveProfile(e) {
+        e.preventDefault();
+        currentUser.name = document.getElementById('user-name-input').value.trim() || 'Teman';
+        currentUser.age = document.getElementById('user-age-input').value;
+        currentUser.gender = document.getElementById('user-gender-input').value;
+        currentUser.status = document.getElementById('user-status-input').value;
+
+        // Update UI
+        document.getElementById('display-name').innerText = currentUser.name;
+        document.getElementById('card-user-name').innerText = currentUser.name;
+        document.getElementById('card-user-details').innerText = `Usia: ${currentUser.age} Thn | Gender: ${currentUser.gender} | Status: ${currentUser.status}`;
+        
+        document.querySelectorAll('.buddy-user-name').forEach(el => el.innerText = currentUser.name);
+
+        // Hide Modal
+        document.getElementById('welcome-modal').classList.add('hidden');
+    }
+
+    const quizQuestions = [
+        "Bagaimana perasaanmu secara umum beberapa hari terakhir?",
+        "Seberapa mudah kamu merasa cemas atau khawatir berlebihan?",
+        "Apakah kamu merasa kesulitan fokus saat beraktivitas?",
+        "Bagaimana kualitas tidurmu akhir-akhir ini?",
+        "Seberapa sering kamu merasa kesepian atau terisolasi?",
+        "Bagaimana tingkat energimu untuk menyelesaikan tugas?",
+        "Seberapa sering kamu merasa kewalahan oleh tuntutan sekitar?",
+        "Seberapa mampu kamu mengendalikan emosi negatif?"
+    ];
+
+    const quizAnswers = {};
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        if (!container) return;
+        container.innerHTML = quizQuestions.map((q, idx) => `
+            <div class="quiz-question border border-gray-100 rounded-xl p-4 bg-gray-50/50 transition" id="qq-${idx}">
+                <p class="text-xs font-medium text-gray-700">${idx + 1}. ${q}</p>
+                <div class="flex items-center justify-between mt-3">
+                    <span class="text-[10px] text-gray-400">Sangat Buruk</span>
+                    <div class="flex gap-1.5">
+                        ${[1,2,3,4,5].map(val => `
+                            <button type="button" onclick="setQuizAnswer(${idx}, ${val}, this)" class="quiz-scale-btn">${val}</button>
+                        `).join('')}
+                    </div>
+                    <span class="text-[10px] text-gray-400">Sangat Baik</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    renderQuiz();
+
+    function setQuizAnswer(qIdx, val, btn) {
+        quizAnswers[qIdx] = val;
+        const parent = document.getElementById(`qq-${qIdx}`);
+        parent.classList.add('answered');
+        parent.querySelectorAll('.quiz-scale-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('quiz-warning').classList.add('hidden');
+    }
+
+    function calculateQuiz() {
+        if (Object.keys(quizAnswers).length < quizQuestions.length) {
+            document.getElementById('quiz-warning').classList.remove('hidden');
+            return;
+        }
+        let total = 0;
+        Object.values(quizAnswers).forEach(v => total += v);
+        const score = Math.round((total / (quizQuestions.length * 5)) * 100);
+        updateScores(score);
+    }
+
+    function updateScores(score) {
+        document.getElementById('mood-score').innerText = score;
+        document.getElementById('check-score').innerText = score;
+        document.getElementById('check-progress').style.width = score + '%';
+
+        let statusText = 'Risiko Rendah';
+        let isCrisis = false;
+
+        if (score < 40) {
+            statusText = 'Risiko Tinggi';
+            isCrisis = true;
+        } else if (score < 70) {
+            statusText = 'Risiko Sedang';
+        }
+
+        document.getElementById('mood-risk').innerText = statusText;
+        document.getElementById('check-risk').innerText = statusText;
+
+        const crisisBox = document.getElementById('crisis-box');
+        if (isCrisis) crisisBox.classList.remove('hidden');
+        else crisisBox.classList.add('hidden');
+    }
+
+    function selectMood(element, moodLabel, score) {
+        document.querySelectorAll('.mood-button').forEach(btn => btn.classList.remove('selected'));
+        element.classList.add('selected');
+        updateScores(score);
+    }
+
+    function navigate(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(`page-${pageId}`);
+        if (target) target.classList.add('active');
+
+        document.querySelectorAll('.sidebar-item').forEach(btn => btn.classList.remove('active'));
+        const sNav = document.getElementById(`s-nav-${pageId}`);
+        if (sNav) sNav.classList.add('active');
+
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        const mNav = document.getElementById(`m-nav-${pageId}`);
+        if (mNav) mNav.classList.add('active');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function filterMaterials() {
+        const query = document.getElementById('learn-search').value.toLowerCase();
+        document.querySelectorAll('.material-card').forEach(card => {
+            const title = card.getAttribute('data-title').toLowerCase();
+            if (title.includes(query)) card.style.display = 'flex';
+            else card.style.display = 'none';
+        });
+    }
+
+    function filterCategory(cat, btn) {
+        document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('active', 'bg-vital-700', 'text-white');
+            b.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        btn.classList.add('active', 'bg-vital-700', 'text-white');
+        btn.classList.remove('bg-gray-100', 'text-gray-600');
+
+        document.querySelectorAll('.material-card').forEach(card => {
+            if (cat === 'all' || card.getAttribute('data-category') === cat) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function openMaterialModal(title, text) {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-body').innerText = text;
+        document.getElementById('material-modal').classList.remove('hidden');
+    }
+
+    function closeMaterialModal() {
+        document.getElementById('material-modal').classList.add('hidden');
+    }
+
+    function handleChatKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function sendQuickPrompt(text) {
+        document.getElementById('chat-input').value = text;
+        sendMessage();
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        if (!message) return;
+
+        const chatWindow = document.getElementById('chat-window');
+
+        // User Message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-message bg-vital-700 text-white p-4 rounded-2xl max-w-[85%] ml-auto';
+        userDiv.innerHTML = `<p class="text-xs">${message}</p>`;
+        chatWindow.appendChild(userDiv);
+
+        input.value = '';
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // Simulated AI Bot Response
+        setTimeout(() => {
+            const botDiv = document.createElement('div');
+            botDiv.className = 'chat-message bg-gray-100 text-gray-800 p-4 rounded-2xl max-w-[85%]';
+            botDiv.innerHTML = `<p class="text-xs">Terima kasih sudah berbagi, ${currentUser.name}. Ingat untuk selalu mendengarkan kebutuhan dirimu dan mengambil waktu istirahat sejenak ya. Ada hal lain yang ingin kamu sampaikan?</p>`;
+            chatWindow.appendChild(botDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
